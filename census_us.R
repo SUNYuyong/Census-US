@@ -1,10 +1,7 @@
 #Exercice us_census_full
 
-#importer les fichiers d'apprentissage 
+#importer les fichiers d'apprentissage  getOption("max.print") 
 census_appren <- read.csv("census_income_learn.csv", header=F)
-
-#importer les fichiers de test 
-census_test <- read.csv("census_income_test.csv", header=F)
 
 #clarifier le sens de chaque colonne en fonction du fichier census_income_metadata.txt
 #Cette étape me permet d'étudier la qualité de toutes les données 
@@ -157,77 +154,205 @@ barplot(mat, main="La comparaison 'year'", space=1,xlab="veterans benefits", yla
 
 
 
-###################################################################################
-census_5 <- read.csv("census_income_learn_50000.csv", header=F)
-
-
-census_5[,37]<-factor(census_5[,37])#own business or self employed 37
-census_5[,39]<-factor(census_5[,39])#veterans benefits 39
-summary(census_5[,37])
-summary(census_5[,39])
-
-
-#1,2,5,8,9,10,13,16,19,36,37,39,40,41
-summary(census_5[,1])
-summary(census_5[,2])
-summary(census_5[,5])
-summary(census_5[,8])
-summary(census_5[,9])
-summary(census_5[,10])
-summary(census_5[,13])
-summary(census_5[,16])
-summary(census_5[,19])
-summary(census_5[,36])###
-summary(census_5[,37])
-summary(census_5[,39])
-summary(census_5[,40])
-summary(census_5[,41])
-summary(census_5[,42])
-#######################################################################################"
-
-census_5_test <- read.csv("census_income_test_50000.csv", header=F)
-
-
-census_5_test[,37]<-factor(census_5_test[,37])#own business or self employed 37
-census_5_test[,39]<-factor(census_5_test[,39])#veterans benefits 39
-summary(census_5_test[,37])
-summary(census_5_test[,39])
-
-
-#1,2,5,8,9,10,13,16,19,36,37,39,40,41
-summary(census_5_test[,1])
-summary(census_5_test[,2])
-summary(census_5_test[,5])
-summary(census_5_test[,8])
-summary(census_5_test[,9])
-summary(census_5_test[,10])
-summary(census_5_test[,13])
-summary(census_5_test[,16])
-summary(census_5_test[,19])
-summary(census_5_test[,36])###
-summary(census_5_test[,37])#
-summary(census_5_test[,39])#2
-summary(census_5_test[,40])#x
-summary(census_5_test[,41])#x
-summary(census_5_test[,42])
-####################################################################################
+#Selon les variables sélectionnées et les résultats de visualisations, 
+#le profil des gens qui gagnent plus de 50K$:
+#age: leur ages se situe entre 38 et 53 et les valeurs sont plus convergent que la population
+#class of worker: Private ou Self-employed-not incorporated ou Self-employed-incorporated
+#education: Bachelors degree(BA AB BS) ou Masters degree(MA MS MEng MEd MSW MBA) ou High school graduate ou Some college but no degree
+#marital stat: Married-civilian spouse present
+#major occupation code: Executive admin and managerial ou Professional specialty
+#sex: male a un poid trois fois plus que female
+#full or part time employment stat:Children or Armed Forces ou Full-time schedules
+#citizenship: Native- Born in the United States
+#own business or self employed et veterans benefits: 0 et 2 (satisfaire en même temps)
 
 
 
-#répéter la sélection des variables pour reinitialiser les données
-census_partiel <- census_appren[c(1,2,5,8,9,10,13,16,19,36,37,39,40,41,42)]
-summary(census_appren[,1])
-census_modele = matrix(0, nrow=15000,ncol=15)
-k=0
-for(i in 1:nrow(census_partiel))
+#concevoir et appliquer algorithme pour census_income_test.csv
+#importer les fichiers de test 
+census_test <- read.csv("census_income_test.csv", header=F)
+gagne_nom<-GagneEstime(census_test)
+
+#Une fonction pour appliquer la modélisation et estimer les erreurs
+GagneEstime<-function(census_test)
 {
-	if(census_partiel[i,15]== " 50000+.")
- 	{
-		for(j in 1:ncol(census_partiel))
+	#initialise deux matrice cal pour sauvegarder les informations des gens +50000
+	#caloth pour sauvegarder les informations des gens -50000
+
+	cal = matrix(0, nrow=1,ncol=nrow(census_test))
+	calindex = 1
+	caloth = matrix(0, nrow=1,ncol=nrow(census_test))
+	calothindex = 1
+	#nombre d'erreur à retouner par cette fonction
+	k=0
+
+	#privilège des variables sélectionnées décidées par les visualisations réalisées précedentes
+	#plus une variable différencie entre -50000 et +50000, plus haute cette variable a une privilège 
+	age = 7
+	classWorker = 6
+	education = 3
+	marital = 8
+	occupation = 3
+	sex = 7
+	fullPart = 5
+	citizenship = 10
+	ownSelf = 8
+	benefit = 10	
+
+	for(i in 1:nrow(census_test))
+	{
+		poid=0
+
+		#Selon les différentes valeurs d'une variable, ajouter différentes points à poid
+
+		#age
+		if(census_test[i,1]>38 & census_test[i,1]<45)
 		{
-			census_modele[k,j] = census_partiel[i,j]
+			poid = poid + 70*age
 		}
-		k = k+1
+		else
+		{
+			poid = poid + 30*age
+
+		}
+
+		#class of worker
+     		if(census_test[i,2]==" Private")
+		{
+			poid = poid + 60*classWorker
+		}
+		else if(census_test[i,2]==" Self-employed-not incorporated" | census_test[i,2]==" Self-employed-incorporated" )
+		{
+			poid = poid + 8*classWorker
+		}
+		else if(census_test[i,2]==" Local government" | census_test[i,2]==" Not in universe")
+		{
+			poid = poid + 6*classWorker
+		}
+		else if(census_test[i,2]==" Federal government" | census_test[i,2]==" State government")
+		{
+			poid = poid + 4*classWorker
+		}
+
+		#education
+		if(census_test[i,5]==" Bachelors degree(BA AB BS)")
+		{
+			poid = poid + 32*education
+		}
+		else if(census_test[i,5]==" Masters degree(MA MS MEng MEd MSW MBA)" )
+		{
+			poid = poid + 16*education
+		}
+		else if(census_test[i,5]==" High school graduate" | census_test[i,5]==" Some college but no degree")
+		{
+			poid = poid + 14*education
+		}
+		else if(census_test[i,5]==" Prof school degree (MD DDS DVM LLB JD)")
+		{
+			poid = poid + 8*education
+		}
+		else if(census_test[i,5]==" Doctorate degree(PhD EdD)")
+		{
+			poid = poid + 5*education
+		}
+		else if(census_test[i,5]==" Associates degree-occup /vocational" | census_test[i,5]==" Associates degree-academic program")
+		{
+			poid = poid + 3*education
+		}
+
+		#marital stat
+		if(census_test[i,8]==" Married-civilian spouse present")
+		{
+			poid = poid + 78*marital 
+		}
+		else if(census_test[i,8]==" Divorced" | census_test[i,8]==" Never married" )
+		{
+			poid = poid + 8*marital
+		}
+		else if(census_test[i,8]==" Widowed")
+		{
+			poid = poid + 3*marital
+		}
+		
+		#major occupation code
+		if(census_test[i,10]==" Executive admin and managerial" | census_test[i,10]==" Professional specialty")
+		{
+			poid = poid + 28*occupation
+		}
+ 		else if(census_test[i,10]==" Sales")
+		{
+			poid = poid + 12*occupation
+		}
+		else if(census_test[i,10]==" Not in universe" | census_test[i,10]==" Precision production craft & repair")
+		{
+			poid = poid + 8*occupation
+		}
+		else if(census_test[i,10]==" Adm support including clerical")
+		{
+			poid = poid + 4*occupation
+		}
+		
+		#sex
+		if(census_test[i,13]==" Female")
+		{
+			poid = poid + 21*sex
+		}
+ 		else 
+		{
+			poid = poid + 79*sex
+		}
+		
+		#full or part time employment stat
+		if(census_test[i,16]==" Children or Armed Forces" | census_test[i,16]==" Full-time schedules")
+		{
+			poid = poid + 45*fullPart
+		}
+ 		else if(census_test[i,16]==" Not in labor force" | census_test[i,16]==" PT for non-econ reasons usually FT")
+		{
+			poid = poid + 3*fullPart
+		}
+
+		#citizenship
+		if(census_test[i,36]==" Native- Born in the United States")
+		{
+			poid = poid + 90*citizenship
+		}
+ 		else if(census_test[i,16]==" Foreign born- Not a citizen of U S" | census_test[i,16]==" Foreign born- U S citizen by naturalization")
+		{
+			poid = poid + 4*citizenship
+		}
+
+		#own business or self employed
+		if(census_test[i,37]==0)
+		{
+			poid = poid + 84*ownSelf
+		}
+
+		#veterans benefits
+		if(census_test[i,39]==2)
+		{
+			poid = poid + 98*citizenship
+		}
+		
+		if(census_test[i,42]==" 50000+.")
+		{
+			cal[1,calindex]=poid
+			calindex = calindex +1
+		}	
+		else	
+		{
+			caloth[1,calothindex]=poid
+			calothindex = calothindex +1
+		}
+
+            #fixer un seuil pour "poid" = 4000, si poid > 4000, prévoir que cette personne gagne +50000 sinon -50000
+		#vérifier la 42eme colonne, si poid > 4000 et la 42eme colonne est -50000, c'est un erreur et incrémente k
+
+		if(poid > 4000 & census_test[i,42]==" 50000+.")
+		{
+			k=k+1
+		}
 	}
+	
+	return(k)
 }
-k

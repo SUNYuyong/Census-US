@@ -368,3 +368,22 @@ census_test <- read.csv("census_income_test.csv", header=F)
 		}
 	}
       numGood/numAffect
+
+	# matrice caloth sauvegarde poid des individus -50000
+	# Comme une taux de bonne classification
+	# calcule le rapport de le nombre des individus inférieur au seuil fixé précédent et le nombre des individus
+	
+	numAffect = 0
+	numGood = 0
+	for(i in 1:ncol(caloth))
+	{
+		if(caloth[1,i] != 0)
+		{
+			numAffect = numAffect +1
+			if(caloth[1,i] < 4000)
+			{
+				numGood = numGood + 1
+			}	
+		}
+	}
+      numGood/numAffect

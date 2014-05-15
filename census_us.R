@@ -166,7 +166,7 @@ barplot(mat, main="La comparaison 'year'", space=1,xlab="veterans benefits", yla
 #citizenship: Native- Born in the United States
 #own business or self employed et veterans benefits: 0 et 2 (satisfaire en même temps)
 
-
+#Les aspects à améliorer: la complexité de l'algorithme
 
 #importer les fichiers de test 
 census_test <- read.csv("census_income_test.csv", header=F)

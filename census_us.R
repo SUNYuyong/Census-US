@@ -168,14 +168,11 @@ barplot(mat, main="La comparaison 'year'", space=1,xlab="veterans benefits", yla
 
 
 
-#concevoir et appliquer algorithme pour census_income_test.csv
 #importer les fichiers de test 
 census_test <- read.csv("census_income_test.csv", header=F)
-gagne_nom<-GagneEstime(census_test)
 
-#Une fonction pour appliquer la modélisation et estimer les erreurs
-GagneEstime<-function(census_test)
-{
+#concevoir et appliquer algorithme pour census_income_test.csv
+
 	#initialise deux matrice cal pour sauvegarder les informations des gens +50000
 	#caloth pour sauvegarder les informations des gens -50000
 
@@ -353,6 +350,4 @@ GagneEstime<-function(census_test)
 			k=k+1
 		}
 	}
-	
-	return(k)
-}
+
